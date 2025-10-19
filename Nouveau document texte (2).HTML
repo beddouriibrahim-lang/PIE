@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<title>استبيان حول مشكل</title>
+<style>
+  body {
+    font-family: sans-serif;
+    direction: rtl;
+    text-align: center;
+    background: #f4f4f4;
+  }
+  .card {
+    background: white;
+    padding: 20px;
+    margin: 50px auto;
+    width: 350px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px #ccc;
+  }
+  button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .yes {
+    background: #4caf50;
+    color: white;
+  }
+  .no {
+    background: #f44336;
+    color: white;
+  }
+  textarea {
+    width: 90%;
+    border-radius: 8px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    resize: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h2>المشكل: عدم الراحة في المقاعد</h2>
+
+  <p>هل يضرك هذا المشكل؟</p>
+  <button class="yes" onclick="choose('نعم')">نعم</button>
+  <button class="no" onclick="choose('لا')">لا</button>
+
+  <div id="form" style="display:none; margin-top:20px;">
+    <p>اقترح حلاً لهذا المشكل:</p>
+    <textarea id="solution" rows="4"></textarea><br>
+    <button onclick="send()">إرسال</button>
+  </div>
+
+  <p id="msg" style="margin-top:20px; font-weight:bold;"></p>
+</div>
+
+<script>
+let answer = "";
+
+function choose(ans) {
+  answer = ans;
+  const form = document.getElementById('form');
+  const msg = document.getElementById('msg');
+
+  if (ans === 'نعم') {
+    form.style.display = 'block';
+    msg.innerText = "";
+  } else {
+    form.style.display = 'none';
+    msg.innerText = "شكراً على المشاركة 🙏";
+  }
+}
+
+function send() {
+  const sol = document.getElementById('solution').value;
+  const data = { answer: answer, solution: sol };
+
+  fetch("https://formspree.io/f/YOUR_ID", { // <-- ضع هنا رابط Formspree الخاص بك
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  })
+  .then(() => {
+    document.getElementById('form').style.display = 'none';
+    document.getElementById('msg').innerText = "شكراً على المشاركة 🙏";
+  })
+  .catch(() => document.getElementById('msg').innerText = "حدث خطأ ⚠");
+}
+</script>
+
+</body>
+</html>
