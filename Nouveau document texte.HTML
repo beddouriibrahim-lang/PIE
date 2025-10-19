@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>📋 مشروع PIE - OFPPT Offshore</title>
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(120deg, #1e90ff, #f0f8ff);
+      font-family: 'Tajawal', sans-serif;
+      color: #002b5b;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+    }
+    header {
+      text-align: center;
+      background: #002b5b;
+      color: white;
+      padding: 20px 0;
+      font-size: 24px;
+      letter-spacing: 1px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+    .container {
+      max-width: 800px;
+      background: white;
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+      margin-top: 15px;
+      color: #002b5b;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #b0c4de;
+      border-radius: 12px;
+      outline: none;
+      transition: all 0.3s ease;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    input:focus, textarea:focus, select:focus {
+      border-color: #1e90ff;
+      box-shadow: 0 0 8px rgba(30,144,255,0.5);
+      transform: scale(1.02);
+    }
+    textarea {
+      resize: vertical;
+      height: 100px;
+    }
+    button {
+      background: linear-gradient(45deg, #1e90ff, #005bbb);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+      align-self: center;
+    }
+    button:hover {
+      background: linear-gradient(45deg, #005bbb, #003d7a);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .hidden { display: none; }
+    .issue {
+      background: #f4f9ff;
+      border-radius: 12px;
+      padding: 15px;
+      margin: 15px 0;
+      border: 1px solid #dce9ff;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .issue:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      transform: translateY(-2px);
+    }
+    .issue-actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+    }
+    .issue-actions button {
+      padding: 8px 16px;
+      font-size: 14px;
+      margin: 0;
+    }
+    .admin-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.2);
+      border: 2px solid white;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      font-size: 24px;
+      transition: all 0.3s ease;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .admin-btn:hover {
+      background: rgba(255,255,255,0.4);
+      transform: scale(1.1);
+    }
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #4caf50;
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 1000;
+    }
+    .notification.error { background: #f44336; }
+  </style>
+</head>
+<body>
+  <header>
+    🧭 منصة جمع مشاكل الطلبة - OFPPT Offshore
+  </header>
+
+  <button class="admin-btn" id="adminEye" title="دخول لوحة المشرف">👁</button>
+
+  <div class="notification" id="notification" role="status" aria-live="polite"></div>
+
+  <div class="container">
+    <h2>📨 هل تعاني من الراحة في المقاعد؟</h2>
+    <form id="issueForm">
+      <label for="userNumber">🔢 رقمك (استعمل رقم تسلسلي فقط)</label>
+      <input type="number" id="userNumber" required min="1" placeholder="مثال: 12">
+
+      <label for="school">🏫 المؤسسة</label>
+      <input type="text" id="school" value="OFPPT - Offshore" readonly>
+
+      <label for="solutions">💡 حلول ممكنة (من 1 إلى 3)</label>
+      <textarea id="solutions" placeholder="اكتب حلولك المقترحة..." required></textarea>
+
+      <button type="submit">إرسال ✅</button>
+    </form>
+  </div>
+
+  <!-- لوحة المشرف -->
+  <div class="container hidden" id="adminPanel">
+    <h2>🧑‍💼 لوحة المشرف</h2>
+    <div id="adminArea">
+      <p>اضغط على "تحديث" لعرض الطلبات.</p>
+      <button id="refreshAdmin">🔄 تحديث</button>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_CODE = "pie102";
+    const adminEye = document.getElementById("adminEye");
+    const adminPanel = document.getElementById("adminPanel");
+    const adminArea = document.getElementById("adminArea");
+    const form = document.getElementById("issueForm");
+    const notification = document.getElementById("notification");
+
+    // بسيط لمنع XSS في العرض / التصدير
+    function escapeHtml(str = "") {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    // دالة لعرض الإشعارات
+    function showNotification(message, isError = false) {
+      notification.textContent = message;
+      notification.classList.toggle("error", isError);
+      notification.style.display = "block";
+      setTimeout(() => { notification.style.display = "none"; }, 3000);
+    }
+
+    // عند إرسال المشكلة
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const solutions = document.getElementById("solutions").value.trim();
+      const user = document.getElementById("userNumber").value.trim();
+
+      if (!solutions || !user) {
+        showNotification("يرجى ملء جميع الحقول!", true);
+        return;
+      }
+
+      const issue = {
+        id: Date.now(), // معرف فريد لكل طلب
+        user: `المستخدم رقم ${escapeHtml(user)}`,
+        school: "OFPPT - Offshore",
+        solutions: escapeHtml(solutions),
+        date: new Date().toLocaleString()
+      };
+
+      const data = JSON.parse(localStorage.getItem("issuesData") || "[]");
+      data.push(issue);
+      localStorage.setItem("issuesData", JSON.stringify(data));
+
+      showNotification("✅ تم حفظ الإجابة بنجاح!");
+      form.reset();
+    });
+
+    // وظيفة عرض لوحة المشرف
+    adminEye.addEventListener("click", () => {
+      const code = prompt("رمز المشرف:");
+      if (code === ADMIN_CODE) {
+        adminPanel.classList.remove("hidden");
+        renderAdmin();
+        showNotification("✅ مرحبًا بك أيها المشرف");
+        adminPanel.scrollIntoView({ behavior: "smooth" });
+        // إخفاء اللوحة تلقائياً بعد 5 دقائق للأمان
+        setTimeout(() => adminPanel.classList.add("hidden"), 300000);
+      } else {
+        showNotification("❌ الكود غير صحيح", true);
+      }
+    });
+
+    // عرض الملاحظات وتحميل JSON
+    function renderAdmin() {
+      const issues = JSON.parse(localStorage.getItem("issuesData") || "[]");
+
+      adminArea.innerHTML = `
+        <h3>📋 الملاحظات المسجلة (${issues.length})</h3>
+        ${issues.length ? '<button id="downloadJson">💾 تحميل JSON الجماعي</button>' : ''}
+        <div id="issuesList">
+          ${issues.length ? issues.map((i, index) => `
+            <div class="issue" data-id="${i.id}">
+              <p><strong>${i.user}</strong> (${i.date})</p>
+              <p>📍 المؤسسة: ${escapeHtml(i.school)}</p>
+              <p>💡 حلول: ${i.solutions}</p>
+              <div class="issue-actions">
+                <button class="export-single" data-index="${index}">📄 تصدير TXT</button>
+                <button class="delete-issue" data-index="${index}">🗑 حذف</button>
+              </div>
+            </div>
+          `).join('') : "<p>🚫 لا توجد مشاكل مسجلة بعد.</p>"}
+        </div>
+      `;
+
+      // تحميل JSON الجماعي (إن وجد)
+      const downloadBtn = document.getElementById("downloadJson");
+      if (downloadBtn) {
+        downloadBtn.addEventListener("click", () => {
+          const blob = new Blob([JSON.stringify(issues, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "issues_ofppt_offshore.json";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        });
+      }
+
+      // تصدير طلب فردي كـ TXT
+      document.querySelectorAll(".export-single").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const index = e.currentTarget.dataset.index;
+          const issue = issues[index];
+          if (!issue) return;
+          const content = `المستخدم: ${issue.user}\nالتاريخ: ${issue.date}\nالمؤسسة: ${issue.school}\nالحلول: ${issue.solutions}`;
+          const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `issue_${issue.id}.txt`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        });
+      });
+
+      // حذف طلب
+      document.querySelectorAll(".delete-issue").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const index = e.currentTarget.dataset.index;
+          if (!issues[index]) return;
+          if (confirm("هل أنت متأكد من حذف هذا الطلب؟")) {
+            issues.splice(index, 1);
+            localStorage.setItem("issuesData", JSON.stringify(issues));
+            renderAdmin();
+            showNotification("🗑 تم حذف الطلب!");
+          }
+        });
+      });
+    }
+
+    // زر التحديث في لوحة المشرف
+    document.addEventListener("click", (e) => {
+      if (e.target && e.target.id === "refreshAdmin") {
+        renderAdmin();
+        showNotification("🔄 تم تحديث القائمة!");
+      }
+    });
+  </script>
+</body>
+</html>
